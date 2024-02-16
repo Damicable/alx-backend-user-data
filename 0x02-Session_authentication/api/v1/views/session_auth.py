@@ -29,7 +29,6 @@ def auth_login() -> str:
 
     for user in users:
         if user.is_valid_password(password):
-            user_id = u.id
             from api.v1.app import auth
             session_id = auth.create_session(user.id)
             session_name = getenv('SESSION_NAME')
