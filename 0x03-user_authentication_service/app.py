@@ -55,7 +55,6 @@ def logout() -> None:
         abort(403)
 
 
-
 @app.route("/profile", methods=["GET"], strict_slashes=False)
 def profile() -> str:
     """user profile"""
