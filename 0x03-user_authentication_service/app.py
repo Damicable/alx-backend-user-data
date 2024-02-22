@@ -46,21 +46,19 @@ def login() -> str:
 @app.route("/sessions", methods=["DELETE"], strict_slashes=False)
 def logout() -> None:
     """user logout"""
-    user = None
-    session_id = request.cookies.get("session_id")
-    if session_id:
-        user = AUTH.get_user_from_session_id(session_id)
-    if not user:
+    session_id = request.cookies.get('session_id')
+    user = AUTH.get_user_from_session_id(session_id)
+    if user:
+        AUTH.destroy_session(user.id)
+        return redirect('/')
+    else:
         abort(403)
-    AUTH.destroy_session(user.id)
-    response = jsonify({"user": user.id, "message": "logged out"})
-    response.delete_cookie('session_id')
-    return direct('/', code=302)
+
 
 
 @app.route("/profile", methods=["GET"], strict_slashes=False)
 def profile() -> str:
-    """user logout"""
+    """user profile"""
     try:
         session_id = request.cookies.get('session_id')
     except Exception:
@@ -82,6 +80,21 @@ def get_reset_password_token() -> str:
     except Exception:
         abort(403)
     response = jsonify({"email": email, "reset_token": new_token})
+    return response, 200
+
+
+@app.route("/reset_password", methods=["PUT"], strict_slashes=False)
+def update_password() -> str:
+    """update password"""
+    email = request.form.get("email")
+    reset_token = request.form.get("reset_token")
+    new_password = request.form.get("new_password")
+    try:
+        AUTH.update_password(reset_token, new_password)
+    except ValueError:
+        abort(403)
+
+    response = jsonify({"email": email, "message": "Password updated"})
     return response, 200
 
 
