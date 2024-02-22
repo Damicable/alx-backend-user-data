@@ -6,7 +6,6 @@ from sqlalchemy.orm.exc import NoResultFound
 from db import DB
 from user import User
 import uuid
-from typing import Union
 
 
 def _hash_password(password: str) -> bytes:
@@ -50,25 +49,28 @@ class Auth:
         """returns the session ID as a string"""
         try:
             user = self._db.find_user_by(email=email)
-        except NoResultFound:
-            return None
-        session_id = self._generate_uuid()
-        self._db.update_user(user.id, session_id=session_id)
-        return session_id
+            s_id = _generate_uuid()
+            self._db.update_user(user.id, session_id=s_id)
+            return s_id
+        except Exception:
+            pass
 
-    def get_user_from_session_id(self, session_id: str) -> Union[User, None]:
+    def get_user_from_session_id(self, session_id: str) -> User:
         """returns the corresponding User or None."""
-        if session_id is not None:
+        if not session_id:
+            return None
+        try:
             user = self._db.find_user_by(session_id=session_id)
-            if user is not None:
-                return user
-        return None
+            return user
+        except Exception:
+            return None
 
     def destroy_session(self, user_id: int) -> None:
         """updates the corresponding user's session ID to None."""
-        if user_id is None:
+        try:
+            self._db.update_user(user_id, session_id=None)
+        except Exception:
             return None
-        self._db.update_user(user_id, session_id=None)
 
     def get_reset_password_token(self, email: str) -> str:
         """takes an email string argument and returns a string."""
